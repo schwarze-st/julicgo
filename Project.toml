@@ -5,6 +5,14 @@ authors = ["Stefan Schwarze <56970919+schwarze-st@users.noreply.github.com>"]
 
 [deps]
 IntervalArithmetic = "d1acc4aa-44c8-5952-acd4-ba5d80a2a253"
+JLD2 = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
+PlotlyJS = "f0f68f2c-4968-5e81-91da-67840de0976a"
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
 IntervalArithmetic = "1.0.2"
+JLD2 = "0.6.4"
+PlotlyJS = "0.18.18"
+Plots = "1.41.6"
+StaticArrays = "1.9.18"
