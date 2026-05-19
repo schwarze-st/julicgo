@@ -1,5 +1,6 @@
 using IntervalArithmetic
 
+setdisplay(:full)
 a = interval(2.,3.)
 b = interval(-1.,1.)
 c = interval(0.,0.5)
