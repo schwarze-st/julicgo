@@ -16,11 +16,14 @@ mutable struct Box_Node{nx,nt,T}         # nx: dimension of x, nt: dimension of 
   u_omega :: Union{T, Nothing}           # upper bound of w over box
   l_f     :: Union{T, Nothing}           # lower bound of f over box
   u_f     :: Union{T, Nothing}           # upper bound of f over box
+  width  :: Union{T, Nothing}            # width of box (max diameter of intervals in xbox and tbox)
 end
 
 function Box_Node(xbox::SVector{nx, Interval{T}}, tbox::SVector{nt, Interval{T}}) where {nx,nt,T}
-    Box_Node{nx,nt,T}(xbox, tbox, nothing, nothing, nothing, nothing)
+    Box_Node{nx,nt,T}(xbox, tbox, nothing, nothing, nothing, nothing, nothing)
 end
+
+@inline diam(iv::Interval{T}) where {T} = sup(iv) - inf(iv)
 
 function width(box::Box_Node{nx,nt,T}) where {nx,nt,T}
     max_width = -Inf
@@ -112,6 +115,7 @@ function initialize_W(P::Problem{nx,nt,T}) where {nx,nt,T}
     first_node = Box_Node(x_comp, t_comp)
     first_node.l_omega, first_node.u_omega = bounding_omega(P, x_comp, t_comp)
     first_node.l_f, first_node.u_f = bounding_f(P, x_comp, t_comp)
+    first_node.width = width(first_node)
     return [first_node]
 end
 
@@ -172,7 +176,7 @@ end
 end
 
 
-function p_icgo(P::Problem{nx,nt,T}, epsilon::Number=0.2, delta::Number=0.1, maxiter::Int=20000, 
+function p_icgo(P::Problem{nx,nt,T}, epsilon::Number=0.2, delta::Number=0.1, maxiter::Int=100000, minwidth::Number=1e-3,
     W::Union{Vector{Box_Node{nx,nt,T}},Nothing}=nothing, O::Union{Vector{Box_Node{nx,nt,T}},Nothing}=nothing) where {nx,nt,T}
     
     if isnothing(W)   
@@ -180,18 +184,31 @@ function p_icgo(P::Problem{nx,nt,T}, epsilon::Number=0.2, delta::Number=0.1, max
     end
     if isnothing(O)
         O = []
+        O_init = []
     end
     sizehint!(W, 10_000)
     sizehint!(O, 10_000)
+    sizehint!(O_init, 1_000)
     y_hat = MVector{nx,T}(undef) # preallocation for midpoints of b_hat_node
     k = 0
+    current_ind = 1
+
     
-    while length(W)>0 && k<maxiter
+    while length(W)>=current_ind && k<maxiter
         k = k + 1
         # select box in fifo scheme
-        current_node = W[1]
+        while W[current_ind].width < minwidth
+            current_ind = current_ind + 1
+            if length(W) < current_ind
+                break
+            end
+        end
+        if length(W) < current_ind
+            break
+        end
+        current_node = W[current_ind]
         if current_node.l_omega > 0
-            deleteat!(W, 1) # discard current node
+            deleteat!(W, current_ind) # discard current node
         else 
             bestval_hat = Inf
             bestval_check = Inf
@@ -229,22 +246,29 @@ function p_icgo(P::Problem{nx,nt,T}, epsilon::Number=0.2, delta::Number=0.1, max
             end    
             y_hat .= mid.(b_hat_node.xbox)
             if max(bounding_omega(P, y_hat, current_node.tbox)[2], bounding_f(P, y_hat, current_node.tbox)[2] - current_node.l_f) < 0
-                deleteat!(W, 1) # discard current node
+                deleteat!(W, current_ind) # discard current node
             else
                 if current_node.u_omega < delta && bestval_check >= 0
-                    push!(O,popat!(W, 1)) # move current node from W to O
+                    deleteat!(W, current_ind) # discard current node
+                    push!(O_init, current_node) # move current node from W to O
+                    push!(O, current_node)
                 else
                     if b_hat_node !== current_node && width(b_hat_node) > width(current_node)*0.1
                         if hat_in_W
-                            deleteat!(W, [1, hat_index])
+                            if current_ind < hat_index
+                                deleteat!(W, [current_ind, hat_index])
+                            else
+                                deleteat!(W, [hat_index, current_ind])
+                            end
                         else
                             deleteat!(O, hat_index)
-                            deleteat!(W, 1)
+                            deleteat!(W, current_ind)
                         end
                         b_hat_children = partition(b_hat_node)
                         @inbounds for child in b_hat_children
                             child.l_omega, child.u_omega = bounding_omega(P, child.xbox, child.tbox)
                             child.l_f, child.u_f = bounding_f(P, child.xbox, child.tbox)
+                            child.width = width(child)
                             if hat_in_W
                                 push!(W, child)
                             else
@@ -252,19 +276,20 @@ function p_icgo(P::Problem{nx,nt,T}, epsilon::Number=0.2, delta::Number=0.1, max
                             end
                         end
                     else
-                        deleteat!(W, 1)
+                        deleteat!(W, current_ind)
                     end
                     current_node_children = partition(current_node)
                     @inbounds for child in current_node_children
                         child.l_omega, child.u_omega = bounding_omega(P, child.xbox, child.tbox)
                         child.l_f, child.u_f = bounding_f(P, child.xbox, child.tbox)
+                        child.width = width(child)
                         push!(W, child)
                     end
                 end
             end 
         end
     end
-    return O, W
+    return O, O_init, W, k
 end
 
 
