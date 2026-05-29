@@ -2,7 +2,7 @@ using StaticArrays, IntervalArithmetic
 
 mutable struct Problem{nx,nt,T}
   f      :: Function                        # f( x::SVector{nx,Interval{T}},  t::SVector{nt,Interval{T}} )
-  g      :: Vector{Function}                # list g_i(x,t) ≤ 0
+  g      :: Tuple{Vararg{Function}}           # list g_i(x,t) ≤ 0
   lowerx :: SVector{nx,T}                   # bounds on x
   upperx :: SVector{nx,T}
   lowert :: SVector{nt,T}                   # bounds on t

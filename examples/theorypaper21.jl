@@ -8,15 +8,13 @@ a_1(x) = (x[1]-2)^2 - 1
 a_2(x) = (x[1]-0.5)^2 - 0.25
 a_3(x) = (x[1]+0.5)^2 - 0.25
 g(x,t)= - t[1] + min(a_1(x), a_2(x), a_3(x))
-g_vec = Vector{Function}()
-push!(g_vec, g)
 
-lx = @SVector [-2.5]
+lx = @SVector [-2.]
 ux = @SVector [2.5]
-lt = @SVector [-1.5]
-ut = @SVector [1.5]
+lt = @SVector [-1.25]
+ut = @SVector [1.0]
 
-P21 = Problem(f, g_vec, lx, ux, lt, ut)
+P21 = Problem(f, (g,), lx, ux, lt, ut)
 
 epsilon = 0.1
 delta = 0.1
