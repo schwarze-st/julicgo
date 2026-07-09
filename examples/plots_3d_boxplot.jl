@@ -71,7 +71,7 @@ function plot_data3d(names, epsilon, delta, minwidth, maxiter)
         plt = plot_boxes3d(O_init, W)
         println("Fertig mit Plotting.")
         println("Schreibe Plot in svg...")
-        savefig(plt, "plots/ex_gdpo_$(P)_$(epsilon)_$(delta)_$(minwidth)_$(maxiter/1000).svg")
+        savefig(plt, "plots/$(P)_$(epsilon)_$(delta)_$(minwidth)_$(maxiter/1000).svg")
     end
 end
 

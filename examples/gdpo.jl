@@ -36,7 +36,7 @@ for (k, P) in enumerate(Problems)
     if profiling
         Profile.clear()                       
         @profile p_icgo(P, epsilon, delta, maxiter, minwidth)
-        Profile.print(maxdepth=20, mincount =3)
+        Profile.print(maxdepth=20, mincount=3)
     else
         t = time_ns()
         O, O_init, W, it_k = p_icgo(P, epsilon, delta, maxiter, minwidth)

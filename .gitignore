@@ -1,2 +1,3 @@
-data/BOLIBver2_julia/Nonlinear/.*\.jl
+data/BOLIBver2_julia/Nonlinear/*
+data/BOLIBver2/*
 Manifest.toml
