@@ -1,6 +1,20 @@
 using Printf
 
 function translate_syntax(expr, NX, NY)
+    # Zeilenvektoren → Spaltenvektoren'
+    expr = replace(expr,
+      # (?<!\[)      : Stelle sicher, daß links kein '[' steht
+      # []           : erste Zeichengruppe darf kein ], , ; oder whitespace enthalten
+      # ([]+[]+)     : mindestens eine weitere solche Zeichengruppe mit Trennzeichen " " oder "," davor    
+      # (?!')        : nur wenn direkt dahinter kein ' steht
+      r"(?<!\[)\[([^\[\],;\s]+(?:[ ,]+[^\[\],;\s]+)+)\](?!')" => (inner::SubString) -> begin
+        parts = split(inner, r"[,\s]+")
+        return join(parts, "; ") * "'"
+      end
+    )
+    # diag([1; 2; 3]')/diag([1; 2; 3]) → Diagonal([1; 2; 3])
+    expr = replace(expr, r"diag\(\s*\[([^\]]+)\]\'\s*\)" => s"Diagonal([\1])")
+    expr = replace(expr, r"diag\(\s*(.*?)\s*\)" => s"Diagonal(\1)") 
     # x(i) → x[i], y(j) → y[j]
     expr = replace(expr, r"x\((\d+)\)" => s"x[\1]")
     expr = replace(expr, r"y\((\d+)\)" => s"y[\1]")
@@ -106,12 +120,11 @@ function parse_and_append(mfile::String, jl_txt::String, num_vars::Int, index::I
     @printf(io, "const nG_%d = %d\n", index, nG)
     @printf(io, "const ng_%d = %d\n\n", index, ng)
 
-    for funkey in ["F","G","f","g"]
+    for funkey in ["F","f"]
       body = get(blocks, funkey, String[])
       if isempty(body)
         @warn "kein Block für $funkey gefunden in $mfile"
       end
-
       # wir gehen hier von Vektor-Inputs aus
       println(io, "function $(funkey)_$(index)(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})")
       for stmt in body
@@ -130,6 +143,30 @@ function parse_and_append(mfile::String, jl_txt::String, num_vars::Int, index::I
       println(io, "end")
       println(io, "")
     end
+    for funkey in ["G","g"]
+      body = get(blocks, funkey, String[])
+      if isempty(body)
+        @warn "kein Block für $funkey gefunden in $mfile"
+      end
+      # wir gehen hier von Vektor-Inputs aus
+      println(io, "function $(funkey)_$(index)(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})")
+      for stmt in body
+        expr = stmt
+        # 1) Matlab-Indexierung → Julia-Indexierung
+        expr = translate_syntax(expr, NX, NY)
+        # 2) w = …   → return …
+        if occursin(r"^w\s*=", expr)
+          rhs = match(r"w\s*=\s*(.*)", expr).captures[1]
+          println(io, "    return ", rhs)
+        else
+          # alle anderen Zuweisungen einfach 1:1
+          println(io, "    ", expr)
+        end
+      end
+      println(io, "end")
+      println(io, "")
+    end
+
   end
   
   return true
@@ -147,7 +184,8 @@ function main()
     println(io, "# maximum number of variables: $num_vars")
     println(io, "")
   end
-  taboolist = ["AnEtal2009", "MorganPatrone2006b", "MorganPatrone2006c"]
+  taboolist = ["AnEtal2009", "MorganPatrone2006b", "MorganPatrone2006c", "CalamaiVicente1994a", 
+    "IshizukaAiyoshi1992a", "HenrionSurowiec2011", "GumusFloudas2001Ex5", "LuDebSinha2016a", "LuDebSinha2016c"]
   testbed = []
   index = 1
   for mfile in readdir(m_folder; join=true)
