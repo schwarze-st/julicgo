@@ -21,7 +21,7 @@ end
 
 
 function main()
-    epsilon=0.5; delta=0.2; maxiter=Inf; time_limit=30; min_width=1e-3; total_number=3;  
+    epsilon=0.5; delta=0.2; maxiter=Inf; time_limit=900; min_width=1e-3; total_number=6;  
     options = Dict([("epsilon", epsilon),("delta",delta),("maxiter",maxiter),("time_limit",time_limit),("min_width", min_width)])
     println("We consider a testbed of length: ", length(testbed))
     println("We compute the first $total_number instances." )
@@ -48,9 +48,7 @@ function main()
                 y_u[k] = xy_best[k+length(x_l)]+10.
             end
         end
-        #if !(all(x_l .> -Inf) && all(x_u .< Inf) && all(y_l .> -Inf) && all(y_u .< Inf))
-        #    if only_bounded continue end
-        #end
+        #if !(all(x_l .> -Inf) && all(x_u .< Inf) && all(y_l .> -Inf) && all(y_u .< Inf)); if only_bounded; continue; end; end
         println("Testing instance $i from testbed")
         println("   Name: $(testbed[i])")
         f_fun = getfield(Main, Symbol("f_",i))   
