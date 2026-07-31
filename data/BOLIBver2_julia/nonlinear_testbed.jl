@@ -1875,7 +1875,9 @@ function F_70(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
 end
 
 function f_70(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
-    return 0.5*(y'*[1+x[1] 0;0 0]*y)-[3+1.333*x[1]; x[1]]' *y
+    a = @MMatrix [1+x[1] 0;0 0]
+    b = @MVector [3+1.333*x[1]; x[1]]
+    return 0.5*(y'*a*y)-b' *y
 end
 
 function G_70(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
@@ -1902,7 +1904,9 @@ function F_71(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
 end
 
 function f_71(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
-    return 0.5*(y'*[1+x[1] 0;0 1+0.1*x[1]]*y)-[3+1.333*x[1]; x[1]]' *y
+    a = @MMatrix [1+x[1] 0;0 1+0.1*x[1]]
+    b = @MVector [3+1.333*x[1]; x[1]]
+    return 0.5*(y'*a*y)-b' *y
 end
 
 function G_71(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
