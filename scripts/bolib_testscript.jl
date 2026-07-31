@@ -21,17 +21,23 @@ end
 
 
 function main()
-    epsilon=0.5; delta=0.2; maxiter=Inf; time_limit=900; min_width=1e-3; total_number=6;  
+    O_nonemp = 0
+    epsilon=0.5; delta=0.2; maxiter=Inf; time_limit=30; min_width=1e-3; total_number=100;  
     options = Dict([("epsilon", epsilon),("delta",delta),("maxiter",maxiter),("time_limit",time_limit),("min_width", min_width)])
     println("We consider a testbed of length: ", length(testbed))
     println("We compute the first $total_number instances." )
     println("The choosen tolerances are epsilon=$epsilon and delta=$delta")
     for i in eachindex(testbed)
+        if i<=74 continue end
         if i>total_number break end
-        name = testbed[i]
-        xy_best = solutions[name]
         x_l = getfield(Main, Symbol("x_l_",i)); x_u = getfield(Main, Symbol("x_u_",i))
         y_l = getfield(Main, Symbol("y_l_",i)); y_u = getfield(Main, Symbol("y_u_",i))
+        name = testbed[i]
+        if haskey(solutions, name)
+            xy_best = solutions[name]
+        else 
+            xy_best = zeros((length(x_l)+length(y_l)))
+        end
         for j in eachindex(x_l)
             if x_l[j]==-Inf
                 x_l[j] = xy_best[j]-10.
@@ -62,9 +68,11 @@ function main()
         time_curr = @elapsed (O, O_I, W, k) = p_icgo(P_curr, epsilon, delta, maxiter, time_limit, min_width) 
         println("run time of instance $i is $time_curr seconds")
         println("It terminated with $(length(W)) boxes in W, $(length(O_I)) boxes in O_init, after $k iterations")
-        @save "data/results_0724/nonlinear_$(i).jld2" O O_I W k time_curr options
+        @save "data/results_0727/nonlinear_$(i).jld2" O O_I W k time_curr options
+        if length(O_I)>0; O_nonemp += 1; end
         println("-------------------------------------------")
     end
+    println("Number of instances with nonempty O: ", O_nonemp)
     println("-------------------------------------------")
 end
 
