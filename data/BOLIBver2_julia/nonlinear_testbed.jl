@@ -178,6 +178,7 @@ function G_7(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
 end
 
 function g_7(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
+    rho = 1.
     return [x[1]-y[1]-1; -x[1]-y[1]+1; x[1]+y[1]-rho]
 end
 
@@ -841,6 +842,7 @@ const y_u_31 = [Inf]
 
 # Instance HenrionSurowiec2011 (number 32)
 function F_32(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
+    c = 0.
     return x[1]^2+c*y[1]
 end
 
@@ -876,10 +878,12 @@ function f_33(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
 end
 
 function G_33(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
+    M = 1.5
     return -x[1]-M
 end
 
 function g_33(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
+    M = 1.5
     return -[1; 1; 1; 0; 0]*x[1]+[0 0; -1 0; 1 0; -1 -1; 1 1]*y-[ 0; 0; 0; M; M]
 end
 
