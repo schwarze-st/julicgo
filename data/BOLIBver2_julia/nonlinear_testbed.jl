@@ -773,6 +773,7 @@ function G_29(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
 end
 
 function g_29(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
+    a = 0.0332333
     return [a/y[2]+0.1*y[1]-1; (4*x[1]+2*x[1]^(-0.71))/y[2]+a*x[1]^(-1.3)-1]
 end
 
@@ -1991,7 +1992,9 @@ function F_74(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
 end
 
 function f_74(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
-    return 0.5*(y'*[1+x[1] 0;0 0]*y)-[3+1.333*x[1]; x[1]]' *y
+    a = @MMatrix [1+x[1] 0;0 0]
+    b = @MVector [3+1.333*x[1]; x[1]]
+    return 0.5*(y'*a*y)-b'*y
 end
 
 function G_74(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
@@ -2018,7 +2021,9 @@ function F_75(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
 end
 
 function f_75(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
-    return 0.5*(y'*[1+x[1] 0;0 1+0.1*x[1]]*y)-[3+1.333*x[1]; x[1]]' *y
+    a = @MMatrix [1+x[1] 0;0 1+0.1*x[1]]
+    b = @MVector [3+1.333*x[1]; x[1]]
+    return 0.5*(y'*a*y)-b'*y
 end
 
 function G_75(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
@@ -2072,7 +2077,9 @@ function F_77(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
 end
 
 function f_77(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
-    return 0.5*(y'*[1+x[1] 0;0 1]*y)-[3+1.333*x[1]; x[1]]' *y
+    a = @MMatrix [1+x[1] 0;0 1]
+    b = @MVector [3+1.333*x[1]; x[1]]
+    return 0.5*(y'*a*y)-b'*y
 end
 
 function G_77(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
@@ -2107,7 +2114,9 @@ function G_78(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
 end
 
 function g_78(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
-    return [[-0.333+0.1*x[1]; 1]'*y+0.1*x[1]-2; [ 1 -0.333-0.1*x[1]]*y+0.1*x[1]-2]
+    a = @MVector [-0.333+0.1*x[1]; 1]
+    b = @MVector [1; -0.333-0.1*x[1]] 
+    return [a'*y+0.1*x[1]-2; b'*y+0.1*x[1]-2]
 end
 
 const NX_78 = 1
