@@ -1,32 +1,110 @@
+include("../src/julicgo.jl")
 include("../data/BOLIBver2_julia/nonlinear_testbed.jl")
 include("../data/BOLIBver2_julia/testbed_info.jl")
-include("../src/julicgo.jl")
-import LinearAlgebra: Diagonal
-using JLD2 
+using JLD2, DataFrames, PrettyTables, CSV
+
+# ─────  broadcast‑overload  ─────
+import Base: +, -
+#  Vector + Skalar
++(v::AbstractVector{T}, s::Number) where {T} = v .+ s
++(s::Number, v::AbstractVector{T}) where {T} = s .+ v
+#  Vector - Skalar
+-(v::AbstractVector{T}, s::Number) where {T} = v .- s
+-(s::Number, v::AbstractVector{T}) where {T} = s .- v
 
 
-function main()
-    p = 0
-    q = 0
-    t_ulim = 0
-    t_uten = 0
-    t_uone = 0
-    for i=1:100
-        @load "data/results_0801/nonlinear_$(i).jld2" O O_I W k time_curr options
-        if length(O_I)>0; p+=1; end
-        if time_curr<3600; t_ulim +=1; end
-        if length(W)==0; q+=1; end
-        if time_curr<600; t_uten +=1; end
-        if time_curr<60; t_uone +=1; end
+function main(results_path::String="data/results_0803")
+    names = String[]
+    o_len = Int[]
+    w_len = Int[]
+    w_len_less = Int[]
+    times = Float64[]
+    iterations = Int[]
+    F_best = Float64[]
+    F_lb = Float64[]
+    for i=1:10
+        @load "$results_path/nonlinear_$(i).jld2" O O_I W k time_curr options
+        if i==1
+            println("Results were computed with the following parameters:") 
+            println("epsilon=$(options["epsilon"])") 
+            println("delta=  $(options["delta"])")
+            println("time_limit=$(options["time_limit"])")
+            println("maxiter=$(options["maxiter"])")
+            println("min_width=$(options["min_width"])")
+        end
+        push!(iterations,k)
+        push!(o_len,length(O_I))
+        push!(w_len,length(W))
+        l = 0
+        for j in eachindex(W)
+            if width(W[j])<options["min_width"]; l+=1; end
+        end
+        push!(w_len_less,l)
+        push!(times,time_curr)
+        push!(names,testbed[i])
+        dim, xy, Ff = get_problem_info(testbed[i])
+        push!(F_best, Ff[1])
+        if isfile("$results_path/nonlinear_$(i)_lb.jld2")
+            @load "$results_path/nonlinear_$(i)_lb.jld2" lb
+        else
+            lb = compute_lower_bound(results_path, O, W, i, Ff[1])
+            @save "$results_path/nonlinear_$(i)_lb.jld2" lb
+        end
+        push!(F_lb, lb)
+
     end
-    println("The test run of 1 hour per instance is complete, we report the following results: ")
-    println("The testbed included 100 instances")
-    println("We report the number of instances, with ")
-    println("   - nonempty approximation O: ",p)
-    println("   - termination within 1h:    ",t_ulim)
-    println("   - termination with empty W: ",q)
-    println("   - termination within 600s:  ",t_uten)
-    println("   - termination within 60s    ",t_uone)
+    df = DataFrame(Name=names, Time=times, Iterations=iterations, O_len=o_len, W_len=w_len, W_len_less=w_len_less, F_Best=F_best, F_LB=F_lb)
+    open("$results_path/tabelle.tex", "w") do f
+        pretty_table(f, df, backend = :latex, formatters = [fmt__printf("%5.1f", [5])])
+    end
+    CSV.write("$results_path/results.csv", df)
+    show(df, allrows=true)
 end
 
-main()
+function compute_lower_bound(results_path::String, O, W, i, lb_paper)
+        F_fun = getfield(Main, Symbol("F_",i))   
+        G_fun = getfield(Main, Symbol("G_",i))
+        # Change order: The leader variable x is the parameter
+        Fhandle = (y, x) -> F_fun(x, y)   # (y,x) → (x,y)
+        Ghandle = (y, x) -> G_fun(x, y)   # (y,x) → (x,y)
+        num_boxes = length(O)+length(W)
+        l = 0
+        lb = Inf
+        for j in eachindex(O)
+            intervalG = Ghandle(O[j].xbox, O[j].tbox)
+            if !(intervalG isa AbstractVector && isempty(intervalG))
+                if maximum(inf.(intervalG)) > 0
+                    l += 1
+                    continue
+                end
+            end
+            intervalF = Fhandle(O[j].xbox, O[j].tbox)
+            lb_j = inf(intervalF)
+            if lb_j < lb
+                lb = lb_j
+            end
+            if lb_j >= lb_paper
+                l += 1
+            end
+        end
+        for j in eachindex(W)
+            intervalG = Ghandle(W[j].xbox, W[j].tbox)
+            if !(intervalG isa AbstractVector && isempty(intervalG))
+                if maximum(inf.(intervalG)) > 0
+                    l += 1
+                    continue
+                end
+            end
+            intervalF = Fhandle(W[j].xbox, W[j].tbox)
+            lb_j = inf(intervalF)
+            if lb_j < lb
+                lb = lb_j
+            end
+            if lb_j >= lb_paper
+                l += 1
+            end
+        end
+    return lb
+end
+
+main("data/results_0803")
