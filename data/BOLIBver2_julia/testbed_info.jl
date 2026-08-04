@@ -209,7 +209,7 @@ const solutions = Dict(
     "HatzEtal2013" => [0, 0, 0],
     "HendersonQuandt1958" => [93.33333, 26.667],
     "HenrionSurowiec2011" => [-0.5, -0.5],  # abhängig von Parameter c
-    "IshizukaAiyoshi1992a" => [0, -100, 0],  # x* ∈ [0,M], M > 1
+    "IshizukaAiyoshi1992a" => [1.5, -1.5, 0],  # x* ∈ [0,M], M = 1.5
     "KleniatiAdjiman2014Ex3" => [0, 1],
     "KleniatiAdjiman2014Ex4" => [1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0],
     "LamparielloSagratella2017Ex23" => [-1, -1, 0],
@@ -260,6 +260,7 @@ const solutions = Dict(
     "Outrata1993Ex31" => [1.90910, 2.97836, 2.23182],
     "Outrata1993Ex32" => [4.06095, 2.68227, 1.48710],
     "RobustPortfolioP2" => [1.15],
+    "ShimizuAiyoshi1981Ex2" => [20, 5, 10, 5],
     "TollSettingP1" => [7, 4, 6, 0, 0, 1, 0, 0, 0, 0, 0],
     "TuyEtal1993" => [2, 0, 1.5, 0],
     "TuyEtal1994" => [0, 3, 0, 0]
