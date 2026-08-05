@@ -20,6 +20,7 @@ function main(results_path::String="data/results_0803")
     w_len_less = Int[]
     times = Float64[]
     iterations = Int[]
+    width_w_boxes = Float64[]
     F_best = Float64[]
     F_lb = Float64[]
     for i=1:10
@@ -44,6 +45,7 @@ function main(results_path::String="data/results_0803")
         push!(names,testbed[i])
         dim, xy, Ff = get_problem_info(testbed[i])
         push!(F_best, Ff[1])
+        push!(width_w_boxes, enclose_w_boxes(W))
         if isfile("$results_path/nonlinear_$(i)_lb.jld2")
             @load "$results_path/nonlinear_$(i)_lb.jld2" lb
         else
@@ -53,7 +55,7 @@ function main(results_path::String="data/results_0803")
         push!(F_lb, lb)
 
     end
-    df = DataFrame(Name=names, Time=times, Iterations=iterations, O_len=o_len, W_len=w_len, W_len_less=w_len_less, F_Best=F_best, F_LB=F_lb)
+    df = DataFrame(Name=names, Time=times, Iterations=iterations, O_len=o_len, W_len=w_len, W_len_less=w_len_less, F_Best=F_best, F_LB=F_lb, Width_W_Boxes=width_w_boxes)
     open("$results_path/tabelle.tex", "w") do f
         pretty_table(f, df, backend = :latex, formatters = [fmt__printf("%5.1f", [5])])
     end
@@ -105,6 +107,27 @@ function compute_lower_bound(results_path::String, O, W, i, lb_paper)
             end
         end
     return lb
+end
+
+function enclose_w_boxes(W)
+        lower_vec = None; upper_vec = None
+        for j in eachindex(W)
+            t_box = W[j].tbox
+            if j==1
+                lower_vec = ones(length(t_box))*Inf
+                upper_vec = -ones(length(t_box))*Inf
+            end
+            for k in eachindex(t_box)
+                if lower_vec[k]>inf(t_box[k]); lower_vec[k] = inf(t_box[k]); end
+                if upper_vec[k]<sup(t_box[k]); upper_vec[k] = sup(t_box[k]); end
+            end
+            
+        end
+        max_width = 0
+        if lower_vec != None
+            max_width = maximum(upper_vec-lower_vec)
+        end
+        return max_width
 end
 
 main("data/results_0803")
