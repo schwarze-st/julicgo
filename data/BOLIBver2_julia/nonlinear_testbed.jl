@@ -2670,13 +2670,13 @@ const x_u_98 = [Inf]
 const y_l_98 = [0.0]
 const y_u_98 = [Inf]
 
-# Instance Zlobec2001a (number 99)
+# Instance Zlobec2001b (number 99)
 function F_99(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
-    return -y[1]/x[1]
+    return x[1]+y[1]
 end
 
 function f_99(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
-    return [-1; -1]'*y
+    return -y[1]
 end
 
 function G_99(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
@@ -2684,45 +2684,18 @@ function G_99(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
 end
 
 function g_99(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
-    return -1+y[1]+x[1]*y[2]
-end
-
-const NX_99 = 1
-const NY_99 = 2
-const nG_99 = 0
-const ng_99 = 1
-
-const x_l_99 = [-Inf]
-const x_u_99 = [Inf]
-const y_l_99 = [0.0, 0.0]
-const y_u_99 = [Inf, Inf]
-
-# Instance Zlobec2001b (number 100)
-function F_100(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
-    return x[1]+y[1]
-end
-
-function f_100(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
-    return -y[1]
-end
-
-function G_100(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
-    return []
-end
-
-function g_100(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
     return [-x[1]*y[1]; x[1]*y[1]]
 end
 
-const NX_100 = 1
-const NY_100 = 1
-const nG_100 = 0
-const ng_100 = 2
+const NX_99 = 1
+const NY_99 = 1
+const nG_99 = 0
+const ng_99 = 2
 
-const x_l_100 = [0.0]
-const x_u_100 = [1.0]
-const y_l_100 = [0.0]
-const y_u_100 = [1.0]
+const x_l_99 = [0.0]
+const x_u_99 = [1.0]
+const y_l_99 = [0.0]
+const y_u_99 = [1.0]
 
 # Filtered testbed of BOLIBver2
 const testbed = [
@@ -2824,6 +2797,5 @@ const testbed = [
     "YeZhu2010Ex43",
     "Yezza1996Ex31",
     "Yezza1996Ex41",
-    "Zlobec2001a",
     "Zlobec2001b",
 ]
