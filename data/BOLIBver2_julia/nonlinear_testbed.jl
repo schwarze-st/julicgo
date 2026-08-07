@@ -905,7 +905,7 @@ function F_34(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
 end
 
 function f_34(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
-    return x[1]*y[1]^2/2-x[1]*y[1]^3
+    return x[1]*(1/2-y[1])*y[1]^2
 end
 
 function G_34(x::AbstractVector{<:Real}, y::AbstractVector{<:Real})
