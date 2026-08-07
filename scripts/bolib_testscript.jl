@@ -66,7 +66,7 @@ function main()
         time_curr = @elapsed (O, O_I, W, k) = p_icgo(P_curr, epsilon, delta, maxiter, time_limit, min_width) 
         println("run time of instance $i is $time_curr seconds")
         println("It terminated with $(length(W)) boxes in W, $(length(O_I)) boxes in O_init, after $k iterations")
-        @save "data/results_0801/nonlinear_$(i).jld2" O O_I W k time_curr options
+        @save "data/results_0806/nonlinear_$(i).jld2" O O_I W k time_curr options
         if length(O_I)>0; O_nonemp += 1; end
         println("-------------------------------------------")
     end
