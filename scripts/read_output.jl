@@ -21,8 +21,12 @@ function main(results_path::String="data/results_0803")
     times = Float64[]
     iterations = Int[]
     width_w_boxes = Float64[]
+    nx = Int[]
+    ny = Int[]
+    ng = Int[]
     F_best = Float64[]
     F_lb = Float64[]
+    F_rel = Float64[]
     for i=1:10
         @load "$results_path/nonlinear_$(i).jld2" O O_I W k time_curr options
         if i==1
@@ -43,6 +47,9 @@ function main(results_path::String="data/results_0803")
         push!(w_len_less,l)
         push!(times,time_curr)
         push!(names,testbed[i])
+        push!(nx, getfield(Main, Symbol("NX_",i)))
+        push!(ny, getfield(Main, Symbol("NY_",i)))
+        push!(ng, getfield(Main, Symbol("ng_",i)))
         dim, xy, Ff = get_problem_info(testbed[i])
         push!(F_best, Ff[1])
         push!(width_w_boxes, enclose_w_boxes(W))
@@ -53,12 +60,9 @@ function main(results_path::String="data/results_0803")
             @save "$results_path/nonlinear_$(i)_lb.jld2" lb
         end
         push!(F_lb, lb)
-
+        push!(F_rel, (F_best[end] - F_lb[end])/max(abs(F_best[end]), abs(F_lb[end]), 1e-6))
     end
-    df = DataFrame(Name=names, Time=times, Iterations=iterations, O_len=o_len, W_len=w_len, W_len_less=w_len_less, F_Best=F_best, F_LB=F_lb, Width_W_Boxes=width_w_boxes)
-    open("$results_path/tabelle.tex", "w") do f
-        pretty_table(f, df, backend = :latex, formatters = [fmt__printf("%5.1f", [5])])
-    end
+    df = DataFrame(Name=names, n_x=nx, n_y=ny, n_g=ng, Time=times, Iterations=iterations, O_len=o_len, W_len=w_len, W_len_less=w_len_less, F_Best=F_best, F_LB=F_lb, F_rel=F_rel, Width_W_Boxes=width_w_boxes)
     CSV.write("$results_path/results.csv", df)
     show(df, allrows=true)
 end
@@ -110,7 +114,7 @@ function compute_lower_bound(results_path::String, O, W, i, lb_paper)
 end
 
 function enclose_w_boxes(W)
-        enter = false
+        lower_vec = nothing; upper_vec = nothing
         for j in eachindex(W)
             t_box = W[j].tbox
             if j==1
@@ -125,10 +129,10 @@ function enclose_w_boxes(W)
             
         end
         max_width = 0
-        if enter
+        if lower_vec != nothing && upper_vec != nothing
             max_width = maximum(upper_vec-lower_vec)
         end
         return max_width
 end
 
-main("data/results_0804")
+main("data/results_0805")

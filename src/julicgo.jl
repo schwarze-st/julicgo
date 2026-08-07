@@ -1,4 +1,4 @@
-using StaticArrays, IntervalArithmetic
+using StaticArrays, IntervalArithmetic, Random
 
 mutable struct Problem{nx,nt,T}
   f      :: Function                                    # f(x::SVector{nx,Interval{T}},t::SVector{nt,Interval{T}})
@@ -108,6 +108,29 @@ function improvementfunction_lb(P::Problem{nx,nt,T}, node::Box_Node{nx,nt,T}, cu
     return max(left, right), max(left,right+epsilon)
 end
 
+function improvementfunction_ub(P::Problem{nx,nt,T}, x::MVector{nx,T}, current_node::Box_Node{nx,nt,T}) where {nx,nt,T}
+    left = bounding_omega(P.g, x, current_node.tbox)[2]
+    right = bounding_f(P.f, x, current_node.tbox)[2] - current_node.l_f
+    return max(left, right)
+end
+
+function find_y_hat(P::Problem{nx,nt,T}, b_hat_node::Box_Node{nx,nt,T}, current_node::Box_Node{nx,nt,T}, num_points::Int=5) where {nx,nt,T}
+    Random.seed!(6625)
+    y_hat = MVector{nx,T}(undef); improvement = -Inf
+    y_hat_lower = inf.(b_hat_node.xbox); y_hat_upper = sup.(b_hat_node.xbox)
+    improvement = +Inf
+    for _ in 1:num_points
+        for i in 1:nx 
+            y_hat[i] = y_hat_lower[i] + rand() * (y_hat_upper[i] - y_hat_lower[i])
+        end
+        improvement_temp = improvementfunction_ub(P, y_hat, current_node)
+        if improvement_temp < improvement
+            improvement = improvement_temp
+        end
+    end
+    return improvement
+end
+
 @inline function overlaps(tbox1::SVector{nt, Interval{T}}, tbox2::SVector{nt, Interval{T}}) where {nt,T}
   @inbounds for j in eachindex(tbox1)
     if intersect_interval(tbox1[j], tbox2[j]) !== emptyinterval(); return true; end
@@ -155,7 +178,7 @@ function p_icgo(P::Problem{nx,nt,T}, epsilon::Number=0.2, delta::Number=0.1, max
     if isnothing(W); W = initialize_W(P); end
     if isnothing(O); O = []; O_init = []; end
     sizehint!(W, 10_000); sizehint!(O, 10_000); sizehint!(O_init, 1_000)
-    y_hat = MVector{nx,T}(undef); k = 0; current_ind = 1
+    k = 0; current_ind = 1
     while length(W)>=current_ind && k<maxiter
         if (time_ns()-t1)/1e9>maxtime; break; end
         k = k + 1
@@ -206,9 +229,9 @@ function p_icgo(P::Problem{nx,nt,T}, epsilon::Number=0.2, delta::Number=0.1, max
                 b_hat_node = W[hat_index]
             else
                 b_hat_node = O[hat_index]
-            end    
-            y_hat .= mid.(b_hat_node.xbox)
-            if max(bounding_omega(P.g, y_hat, current_node.tbox)[2], bounding_f(P.f, y_hat, current_node.tbox)[2] - current_node.l_f) < 0
+            end
+            improvement_at_y_hat = find_y_hat(P, b_hat_node, current_node)    
+            if improvement_at_y_hat < 0
                 deleteat!(W, current_ind) # discard current node
             else
                 if current_node.u_omega < delta && bestval_check >= 0
