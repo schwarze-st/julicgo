@@ -1,6 +1,7 @@
 data/BOLIBver2_julia/Nonlinear/*
 data/BOLIBver2/*
 data/results_0724/*
+data/results_*
 scripts/miniscript.jl
 scripts/detect_bounds_test.jl
 scripts/test_bolib2.jl

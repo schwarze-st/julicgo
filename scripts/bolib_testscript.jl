@@ -20,13 +20,16 @@ function to_svector(v::Vector{T}) where T
 end
 
 
-function main()
+function main(result_folder::String)
+    if !isdir(result_folder)
+        mkdir(result_folder)
+    end
     O_nonemp = 0
-    epsilon=0.1; delta=0.1; maxiter=Inf; time_limit=1800; min_width=0; 
-    options = Dict([("epsilon", epsilon),("delta",delta),("maxiter",maxiter),("time_limit",time_limit),("min_width", min_width)])
+    epsilon=0.1; delta=0.1; maxiter=Inf; time_limit=5400; min_width=0; default_bound=5.0
+    options = Dict([("epsilon", epsilon),("delta",delta),("maxiter",maxiter),("time_limit",time_limit),("min_width", min_width),("default_bound", default_bound)])
     println("We consider a testbed of length: ", length(testbed))
     println("The choosen tolerances are epsilon=$epsilon and delta=$delta")
-    for i in 1:99
+    for i in length(testbed)
         #if i<=77 continue end
         x_l = getfield(Main, Symbol("x_l_",i)); x_u = getfield(Main, Symbol("x_u_",i))
         y_l = getfield(Main, Symbol("y_l_",i)); y_u = getfield(Main, Symbol("y_u_",i))
@@ -38,21 +41,20 @@ function main()
         end
         for j in eachindex(x_l)
             if x_l[j]==-Inf
-                x_l[j] = xy_best[j]-10.
+                x_l[j] = xy_best[j]-default_bound
             end
             if x_u[j]==Inf
-                x_u[j] = xy_best[j]+10.
+                x_u[j] = xy_best[j]+default_bound
             end
         end
         for k in eachindex(y_l)
             if y_l[k]==-Inf
-                y_l[k] = xy_best[k+length(x_l)]-10.
+                y_l[k] = xy_best[k+length(x_l)]-default_bound
             end
             if y_u[k]==Inf
-                y_u[k] = xy_best[k+length(x_l)]+10.
+                y_u[k] = xy_best[k+length(x_l)]+default_bound
             end
         end
-        #if !(all(x_l .> -Inf) && all(x_u .< Inf) && all(y_l .> -Inf) && all(y_u .< Inf)); if only_bounded; continue; end; end
         println("Testing instance $i from testbed")
         println("   Name: $(testbed[i])")
         f_fun = getfield(Main, Symbol("f_",i))   
@@ -66,7 +68,7 @@ function main()
         time_curr = @elapsed (O, O_I, W, k) = p_icgo(P_curr, epsilon, delta, maxiter, time_limit, min_width) 
         println("run time of instance $i is $time_curr seconds")
         println("It terminated with $(length(W)) boxes in W, $(length(O_I)) boxes in O_init, after $k iterations")
-        @save "data/results_0805/nonlinear_$(i).jld2" O O_I W k time_curr options
+        @save "$result_folder/nonlinear_$(i).jld2" O O_I W k time_curr options
         if length(O_I)>0; O_nonemp += 1; end
         println("-------------------------------------------")
     end
@@ -74,4 +76,4 @@ function main()
     println("-------------------------------------------")
 end
 
-main()
+main("data/results_0807")
