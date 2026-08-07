@@ -22,11 +22,11 @@ end
 
 function main()
     O_nonemp = 0
-    epsilon=0.2; delta=0.1; maxiter=Inf; time_limit=3600; min_width=1e-3; 
+    epsilon=0.2; delta=0.1; maxiter=Inf; time_limit=10; min_width=1e-6; 
     options = Dict([("epsilon", epsilon),("delta",delta),("maxiter",maxiter),("time_limit",time_limit),("min_width", min_width)])
     println("We consider a testbed of length: ", length(testbed))
     println("The choosen tolerances are epsilon=$epsilon and delta=$delta")
-    for i in eachindex(testbed)
+    for i in 1:10
         #if i<=77 continue end
         x_l = getfield(Main, Symbol("x_l_",i)); x_u = getfield(Main, Symbol("x_u_",i))
         y_l = getfield(Main, Symbol("y_l_",i)); y_u = getfield(Main, Symbol("y_u_",i))
