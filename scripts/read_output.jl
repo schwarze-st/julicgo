@@ -110,10 +110,11 @@ function compute_lower_bound(results_path::String, O, W, i, lb_paper)
 end
 
 function enclose_w_boxes(W)
-        lower_vec = None; upper_vec = None
+        enter = false
         for j in eachindex(W)
             t_box = W[j].tbox
             if j==1
+                enter = true
                 lower_vec = ones(length(t_box))*Inf
                 upper_vec = -ones(length(t_box))*Inf
             end
@@ -124,10 +125,10 @@ function enclose_w_boxes(W)
             
         end
         max_width = 0
-        if lower_vec != None
+        if enter
             max_width = maximum(upper_vec-lower_vec)
         end
         return max_width
 end
 
-main("data/results_0803")
+main("data/results_0804")
