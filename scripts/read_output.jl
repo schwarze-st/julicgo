@@ -13,7 +13,7 @@ import Base: +, -
 -(s::Number, v::AbstractVector{T}) where {T} = s .- v
 
 
-function main(results_path::String="data/results_0803")
+function main(results_path::String)
     names = String[]
     o_len = Int[]
     w_len = Int[]
@@ -27,15 +27,18 @@ function main(results_path::String="data/results_0803")
     F_best = Float64[]
     F_lb = Float64[]
     F_rel = Float64[]
-    for i=1:10
+    for i=1:length(testbed)
         @load "$results_path/nonlinear_$(i).jld2" O O_I W k time_curr options
         if i==1
             println("Results were computed with the following parameters:") 
             println("epsilon=$(options["epsilon"])") 
             println("delta=  $(options["delta"])")
             println("time_limit=$(options["time_limit"])")
-            println("maxiter=$(options["maxiter"])")
+            println("default_bound=$(options["default_bound"])")
+            println("maxiter=$(options["maxiter"])")            
             println("min_width=$(options["min_width"])")
+            df_pars = DataFrame(Epsilon=options["epsilon"], Delta=options["delta"], Time_limit=options["time_limit"], Default_bound=options["default_bound"], Max_iter=options["maxiter"], Min_width=options["min_width"])
+            CSV.write("$results_path/parameters.csv", df_pars)
         end
         push!(iterations,k)
         push!(o_len,length(O_I))
@@ -118,6 +121,7 @@ function enclose_w_boxes(W)
         for j in eachindex(W)
             t_box = W[j].tbox
             if j==1
+                enter = true
                 lower_vec = ones(length(t_box))*Inf
                 upper_vec = -ones(length(t_box))*Inf
             end
@@ -134,4 +138,4 @@ function enclose_w_boxes(W)
         return max_width
 end
 
-main("data/results_0806")
+main("data/results_0807")
