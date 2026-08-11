@@ -29,7 +29,7 @@ function main(result_folder::String)
     options = Dict([("epsilon", epsilon),("delta",delta),("maxiter",maxiter),("time_limit",time_limit),("min_width", min_width),("default_bound", default_bound)])
     println("We consider a testbed of length: ", length(testbed))
     println("The choosen tolerances are epsilon=$epsilon and delta=$delta")
-    for i in length(testbed)
+    for i in eachindex(testbed)
         #if i<=77 continue end
         x_l = getfield(Main, Symbol("x_l_",i)); x_u = getfield(Main, Symbol("x_u_",i))
         y_l = getfield(Main, Symbol("y_l_",i)); y_u = getfield(Main, Symbol("y_u_",i))
