@@ -28,26 +28,10 @@ function main(results_path::String)
     F_lb = Float64[]
     F_rel = Float64[]
     for i=1:length(testbed)
-        @load "$results_path/nonlinear_$(i).jld2" O O_I W k time_curr options
-        if i==1
-            println("Results were computed with the following parameters:") 
-            println("epsilon=$(options["epsilon"])") 
-            println("delta=  $(options["delta"])")
-            println("time_limit=$(options["time_limit"])")
-            println("default_bound=$(options["default_bound"])")
-            println("maxiter=$(options["maxiter"])")            
-            println("min_width=$(options["min_width"])")
-            df_pars = DataFrame(Epsilon=options["epsilon"], Delta=options["delta"], Time_limit=options["time_limit"], Default_bound=options["default_bound"], Max_iter=options["maxiter"], Min_width=options["min_width"])
-            CSV.write("$results_path/parameters.csv", df_pars)
-        end
+        @load "$results_path/nonlinear_$(i).jld2" O O_I W k time_curr
         push!(iterations,k)
         push!(o_len,length(O_I))
         push!(w_len,length(W))
-        l = 0
-        for j in eachindex(W)
-            if width(W[j])<options["min_width"]; l+=1; end
-        end
-        push!(w_len_less,l)
         push!(times,time_curr)
         push!(names,testbed[i])
         push!(nx, getfield(Main, Symbol("NX_",i)))
@@ -65,7 +49,7 @@ function main(results_path::String)
         push!(F_lb, lb)
         push!(F_rel, (F_best[end] - F_lb[end])/max(abs(F_best[end]), abs(F_lb[end]), 1e-6))
     end
-    df = DataFrame(Name=names, n_x=nx, n_y=ny, n_g=ng, Time=times, Iterations=iterations, O_len=o_len, W_len=w_len, W_len_less=w_len_less, F_Best=F_best, F_LB=F_lb, F_rel=F_rel, Width_W_Boxes=width_w_boxes)
+    df = DataFrame(Name=names, n_x=nx, n_y=ny, n_g=ng, Time=times, Iterations=iterations, O_len=o_len, W_len=w_len, F_Best=F_best, F_LB=F_lb, F_rel=F_rel, Width_W_Boxes=width_w_boxes)
     CSV.write("$results_path/results.csv", df)
     show(df, allrows=true)
 end
@@ -138,4 +122,4 @@ function enclose_w_boxes(W)
         return max_width
 end
 
-main("data/results_0807")
+main("data/results_0811b")
