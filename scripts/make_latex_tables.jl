@@ -1,24 +1,21 @@
 
 using JLD2, DataFrames, PrettyTables, CSV
+include("../data/BOLIBver2_julia/nonlinear_testbed.jl")
+include("../data/BOLIBver2_julia/testbed_info.jl")
 
 function main(results_path::String)
-    df = DataFrame(CSV.File("$results_path/results.csv"))
+    df_in = DataFrame(CSV.File("$results_path/results.csv"))
+    parameters = DataFrame(CSV.File("$results_path/parameters.csv"))
+    default_bound = parameters.Default_bound[1]
     nx = Int[]
     ny = Int[]
     ng = Int[]
     vols_x = Float64[]
     vols_y = Float64[]
     vols_xy = Float64[]
-    for i in eachindex(df.Name)
-        index_testbed = findfirst(isequal(df.Name[i]), testbed)
-        if index_testbed === nothing
-            push!(nx,100)
-            push!(ny,100)
-            push!(ng,100)
-            push!(vols_x,100.)
-            push!(vols_y,100.)
-            push!(vols_xy,100.)
-        else
+    ratio = Float64[]
+    for i in eachindex(df_in.Name)
+        index_testbed = findfirst(isequal(df_in.Name[i]), testbed)
         push!(nx, getfield(Main, Symbol("NX_",index_testbed)))  
         push!(ny, getfield(Main, Symbol("NY_",index_testbed)))
         push!(ng, getfield(Main, Symbol("ng_",index_testbed)))
@@ -32,35 +29,46 @@ function main(results_path::String)
         end
         for j in eachindex(x_l)
             if x_l[j]==-Inf
-                x_l[j] = xy_best[j]-10.
+                x_l[j] = xy_best[j]-default_bound
             end
             if x_u[j]==Inf
-                x_u[j] = xy_best[j]+10.
+                x_u[j] = xy_best[j]+default_bound
             end
         end
         for k in eachindex(y_l)
             if y_l[k]==-Inf
-                y_l[k] = xy_best[k+length(x_l)]-10.
+                y_l[k] = xy_best[k+length(x_l)]-default_bound
             end
             if y_u[k]==Inf
-                y_u[k] = xy_best[k+length(x_l)]+10.
+                y_u[k] = xy_best[k+length(x_l)]+default_bound
             end
         end
-        v_x = prod(x_u .- x_l)
+        diff1 = x_u .- x_l
+        v_x = prod(diff1[diff1.>0])
         push!(vols_x, v_x)
-        v_y = prod(y_u .- y_l)
+        diff2 = y_u .- y_l
+        v_y = prod(diff2[diff2.>0])
         push!(vols_y, v_y)
         v_xy = v_x * v_y
         push!(vols_xy, v_xy)
-        end
+        push!(ratio, (df_in.F_Best[i] - df_in.F_LB[i])/max(abs(df_in.F_Best[i]), abs(df_in.F_LB[i]), 1e-6))
     end
-    df = DataFrame(Name=df.Name, Vols_x=vols_x, Vols_y=vols_y, Vols_xy=vols_xy, n_x=nx, n_y=ny, n_g=ng, Time=df.Time, Iterations=df.Iterations, O_len=df.O_len, W_len=df.W_len, W_len_less=df.W_len_less, F_Best=df.F_Best, F_LB=df.F_LB)
-    sort!(df,:Time)
-    show(df, allrows=true)
-    
-    #open("$results_path/tabelle.tex", "w") do f
-     #   pretty_table(f, df, backend = :latex, formatters = [fmt__printf("%5.1f", [5])])
-    #end
+    df = DataFrame(name=df_in.Name, n_x=nx, n_y=ny, n_g=ng, vol_B_0=vols_xy, 
+                    t=df_in.Time, iterations=df_in.Iterations, W_len=df_in.W_len, O_len=df_in.O_len, 
+                    F_diff=df_in.F_Best-df_in.F_LB, ratio=ratio)
+
+    df_term = df[df[:,:W_len] .== 0, :]
+    df_nterm = df[df[:,:W_len] .> 0, :]
+    column_labels = [latex_cell"name", latex_cell"$n_x$", latex_cell"$n_y$", latex_cell"$n_g$", latex_cell"$\mbox{vol}(B_0)$", latex_cell"t", 
+                    latex_cell"iterations", latex_cell"$|W|$", latex_cell"$|O|$", latex_cell"$F_{best}-F_{lb}$", latex_cell"$(F_{best}-F_{lb})_{r}$"]
+    open("$results_path/tabelle.tex", "w") do f
+        # formatters = [fmt__latex_sn(4)]
+       formatters = [fmt__latex_sn(5,[5]), fmt__printf("%.2f", [6]),fmt__printf("%.3f", [10,11])]
+       pretty_table(f, df_term, backend = :latex, column_labels = column_labels, 
+                    style = LatexTableStyle(column_label = String[]), formatters=formatters,  table_format = latex_table_format__booktabs)
+       pretty_table(f, df_nterm, backend = :latex, column_labels = column_labels, 
+                    style = LatexTableStyle(column_label = String[]), formatters=formatters,  table_format = latex_table_format__booktabs)
+    end
 end
 
-main("data/results_0804")
+main("data/results_0807")
