@@ -51,7 +51,7 @@ function main(results_path::String)
         push!(F_lb, lb)
         push!(F_rel, (F_best[end] - F_lb[end])/max(abs(F_best[end]), abs(F_lb[end]), 1e-6))
     end
-    df = DataFrame(Name=names, n_x=nx, n_y=ny, n_g=ng, Time=times, Iterations=iterations, O_len=o_len, W_len=w_len, F_Best=F_best, F_LB=F_lb, F_rel=F_rel, Width_W_Boxes=width_w_boxes)
+    df = DataFrame(Name=names, n_x=nx, n_y=ny, n_g=ng, Time=times, Iterations=iterations, O_len=o_len, O_I_len=o_i_len, W_len=w_len, F_Best=F_best, F_LB=F_lb, F_rel=F_rel, Width_W_Boxes=width_w_boxes)
     CSV.write("$results_path/results.csv", df)
     show(df, allrows=true)
 end
