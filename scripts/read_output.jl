@@ -16,6 +16,7 @@ import Base: +, -
 function main(results_path::String)
     names = String[]
     o_len = Int[]
+    o_i_len = Int[]
     w_len = Int[]
     w_len_less = Int[]
     times = Float64[]
@@ -30,7 +31,8 @@ function main(results_path::String)
     for i=1:length(testbed)
         @load "$results_path/nonlinear_$(i).jld2" O O_I W k time_curr
         push!(iterations,k)
-        push!(o_len,length(O_I))
+        push!(o_len,length(O))        
+        push!(o_i_len,length(O_I))
         push!(w_len,length(W))
         push!(times,time_curr)
         push!(names,testbed[i])
@@ -122,4 +124,4 @@ function enclose_w_boxes(W)
         return max_width
 end
 
-main("data/results_0811b")
+main("data/results_0807")
