@@ -12,8 +12,8 @@ const _BOX_EDGES3D = [
   (1,5),(2,6),(3,7),(4,8)   # Säulen
 ]
 
-function plot_boxes3d(O::Vector, W::Vector; lw=1.5)
-    plt = plot(legend=false, dpi=1200, size=(1000,1000))   # neuer Plot, keine Legende
+function plot_boxes3d(O::Vector, W::Vector; lw=1.2)
+    plt = plot(legend=false, dpi=1000, size=(800,800))   # neuer Plot, keine Legende
 
     function _corners(box)
         ivs = vcat(box.tbox, box.xbox)            # SVector{3, Interval}
@@ -42,7 +42,7 @@ function plot_boxes3d(O::Vector, W::Vector; lw=1.5)
                   linewidth = lw)
         end
     end
-    # 3) Alle W‐Boxen in schwarz scattern
+    # 3) Alle W‐Boxen in rot scattern
     println("Plotte $(length(W)) W‐Boxen")
     tx = Float64[]; xx = Float64[]; yy = Float64[]
     for box in W
@@ -51,9 +51,9 @@ function plot_boxes3d(O::Vector, W::Vector; lw=1.5)
         push!(tx, midpts[1]); push!(xx, midpts[2]); push!(yy, midpts[3])
     end
     scatter3d!(plt, tx, xx, yy;
-        markersize      = lw*0.15,
+        markersize      = lw*0.5,
         markerstrokewidth = 0,
-        color           = :black
+        color           = :red
     )
     # 4) Beschriftungen
     xlabel!("t")
@@ -62,22 +62,23 @@ function plot_boxes3d(O::Vector, W::Vector; lw=1.5)
     return plt
 end
 
-function plot_data3d(names, epsilon, delta, minwidth, maxiter)
+function plot_data3d(names, epsilon, delta, minwidth)
     for P in names
         println("Lade Beispiel $(P) aus Grundzüge der PO")
-        @load "data/$(P)_$(epsilon)_$(delta)_$(minwidth)_$(maxiter/1000).jld2" O O_init W it_k elapsed
+        @load "data/$(P)_$(epsilon)_$(delta)_$(minwidth).jld2" O O_init W it_k elapsed
         println("Anzahl Iterationen: $it_k, benötigte Zeit: $elapsed Sekunden.")
         println("Starte Plotting der Ergebnisse aus $P...")
         plt = plot_boxes3d(O_init, W)
         println("Fertig mit Plotting.")
-        println("Schreibe Plot in svg...")
-        savefig(plt, "plots/$(P)_$(epsilon)_$(delta)_$(minwidth)_$(maxiter/1000).svg")
+        println("Schreibe Plot in png...")
+        savefig(plt, "plots/$(P)_$(epsilon)_$(delta)_$(minwidth).png")
+        println("$(P) fertig.")
     end
 end
 
 function draw_problems3d()
     plotlyjs()
-    plt1 = Plots.plot(legend=false, dpi=1200, size=(1000,1000))
+    plt1 = Plots.plot(legend=false, dpi=1000, size=(600,600))
     # P195 
     ts = []; x1s = []; x2s = []
     ts = vcat(ts, range(0, 0.5*pi, length=50))  ; x1s = vcat(x1s, -ones(50))   ; x2s = vcat(x2s, zeros(50))
@@ -89,11 +90,11 @@ function draw_problems3d()
     ts = vcat(ts, range(7/4*pi,2*pi, length=50)); x1s = vcat(x1s, -ones(50))   ; x2s = vcat(x2s, zeros(50))
     Plots.plot3d!(plt1,ts, x1s, x2s; color=:black, linewidth=2)
     xlabel!("t")
-    ylabel!("x_1")
-    zlabel!("x_2")
-    savefig(plt1, "plots/P194_3d.svg")
+    ylabel!("x1")
+    zlabel!("x2")
+    savefig(plt1, "plots/P194_3d.png")
 
-    plt2 = Plots.plot(legend=false, dpi=1200, size=(1000,1000))
+    plt2 = Plots.plot(legend=false, dpi=1200, size=(600,600))
     t = []; x1 = []; x2 = []
     t = vcat(t, range(0, 0.5*pi, length=50))  ; x1 = vcat(x1, -ones(50))   ; x2 = vcat(x2, zeros(50))
     Plots.plot3d!(plt2, t, x1, x2; color=:black, linewidth=2)
@@ -113,14 +114,10 @@ function draw_problems3d()
     xlabel!("t")
     ylabel!("x1")
     zlabel!("x2")
-    savefig(plt2, "plots/P195_3d.svg")
+    savefig(plt2, "plots/P195_3d.png")
 end
 
-epsilon = 0.2
-delta = 0.2
-minwidth = 0.001
-maxiter = 30000
-names = ["P195"]#["P194","P195"]
+names = ["P194"] #["P194","P195"]
 
-#plot_data3d(names, epsilon, delta, minwidth, maxiter)
-draw_problems3d()
+plot_data3d(names, 0.1, 0.1, 0.001)
+#draw_problems3d()

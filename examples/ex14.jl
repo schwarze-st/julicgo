@@ -39,10 +39,11 @@ end
 f(x,t) = -2*x[1]
 g_1(x,t) = x[1] -0.5*t[1] - 5/4
 g_2(x,t) = -x[1] -0.5*t[1] + 11/4
+#g(x,t) = [g_1(x,t); g_2(x,t)]
 g_tup = NTuple{2, Function}((g_1, g_2))
 
 lx = @SVector [-2.5]
-ux = @SVector [4.0]
+ux = @SVector [4.]
 lt = @SVector [0.]
 ut = @SVector [3.0]
 
@@ -51,18 +52,18 @@ P14 = Problem(f, g_tup, lx, ux, lt, ut)
 epsilon = 0.5
 delta = 0.5
 maxiter = 30000
-minwidth = epsilon*1e-3
+minwidth = 1e-5
 
 t = time_ns()
-O, O_init, W, it_k = p_icgo(P14, epsilon, delta, maxiter, minwidth)
+O, O_init, W, it_k = p_icgo(P14, epsilon, delta, Inf, Inf, minwidth)
 elapsed = (time_ns() - t)/1e9
 println("Anzahl Iterationen: $it_k, benötigte Zeit: $elapsed Sekunden.")
-println("Anzahl der O-Boxen: $(length(O_init)), Anzahl der W-Boxen: $(length(W))")
-@save "data/ex14_$(epsilon)_$(delta)_$(minwidth)_$(maxiter/1000).jld2" O O_init W it_k elapsed
+println("Anzahl der O-Boxen: $(length(O)), Anzahl der O^I-Boxen: $(length(O_init)), Anzahl der W-Boxen: $(length(W))")
+@save "data/ex14_$(epsilon)_$(delta).jld2" O O_init W it_k elapsed
 
 lw = 1.5
 
-plt = Plots.plot(legend = false, xticks=0:0.5:3.5, yticks=0.5:0.5:3, dpi=1200, size=(800*1.5,600*1.5), framestyle=:box)
+plt = Plots.plot(legend = false, xticks=0:0.5:3.5, yticks=0.5:0.5:3, dpi=1200, size=(800,600), framestyle=:box)
 
 a = range(1.5, 3.0, length=200)
 b = range(0.5, 3.0, length=200)
@@ -90,5 +91,4 @@ ylabel!("x")
 xlims!(0.0, 3.0)
 ylims!(0.5, 3.5)
 display(plt)
-#Plots.savefig(plt, "plots/ex14_0.5_0.5_0.0005_30.0.png")
-Plots.savefig(plt, "plots/ex14_0.5_0.5_0.0005_30.0.svg")
+Plots.savefig(plt, "plots/ex14_$(epsilon)_$(delta).png")
