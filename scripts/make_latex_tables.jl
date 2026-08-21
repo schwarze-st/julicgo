@@ -54,21 +54,23 @@ function main(results_path::String)
         push!(ratio, (df_in.F_Best[i] - df_in.F_LB[i])/max(abs(df_in.F_Best[i]), abs(df_in.F_LB[i]), 1e-6))
     end
     df = DataFrame(name=df_in.Name, n_x=nx, n_y=ny, n_g=ng, vol_B_0=vols_xy, 
-                    t=df_in.Time, iterations=df_in.Iterations, W_len=df_in.W_len, O_len=df_in.O_len, 
+                    t=df_in.Time, iterations=df_in.Iterations, W_len=df_in.W_len, O_len=df_in.O_len, O_I_len = df_in.O_I_len, 
                     F_b=df_in.F_Best, F_l=df_in.F_LB, ratio=ratio)
 
     df_term = df[df[:,:W_len] .== 0, :]
     df_nterm = df[df[:,:W_len] .> 0, :]
     column_labels = [latex_cell"name", latex_cell"$n_x$", latex_cell"$n_y$", latex_cell"$n_g$", latex_cell"$\mbox{vol}(B_0)$", latex_cell"t", 
-                    latex_cell"iterations", latex_cell"$|W|$", latex_cell"$|O|$", latex_cell"$F_{b}$", latex_cell"$F_{l}$", latex_cell"$(F_{b}-F_{l})_{r}$"]
+                    latex_cell"iterations", latex_cell"$|W|$", latex_cell"$|O|$", latex_cell"$|O^I|$", latex_cell"$F_{b}$", latex_cell"$F_{l}$", latex_cell"$(F_{b}-F_{l})_{r}$"]
     open("$results_path/tabelle.tex", "w") do f
         # formatters = [fmt__latex_sn(4)]
-       formatters = [fmt__latex_sn(5,[5]), fmt__printf("%.2f", [6]),fmt__printf("%.3f", [10,11,12])]
+       formatters = [fmt__latex_sn(5,[5]), fmt__printf("%.2f", [6]),fmt__printf("%.3f", [11,12,13])]
        pretty_table(f, df_term, backend = :latex, column_labels = column_labels, 
                     style = LatexTableStyle(column_label = String[]), formatters=formatters, table_format = latex_table_format__booktabs)
        pretty_table(f, df_nterm, backend = :latex, column_labels = column_labels, 
                     style = LatexTableStyle(column_label = String[]), formatters=formatters, table_format = latex_table_format__booktabs)
     end
+    CSV.write("$results_path/table_nterm.csv", df_nterm)
+    CSV.write("$results_path/table_term.csv", df_term)
 end
 
 main("data/results_0807")
