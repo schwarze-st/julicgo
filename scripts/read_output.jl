@@ -18,7 +18,6 @@ function main(results_path::String)
     o_len = Int[]
     o_i_len = Int[]
     w_len = Int[]
-    w_len_less = Int[]
     times = Float64[]
     iterations = Int[]
     width_w_boxes = Float64[]
@@ -28,8 +27,12 @@ function main(results_path::String)
     F_best = Float64[]
     F_lb = Float64[]
     F_rel = Float64[]
-    for i=1:length(testbed)
-        @load "$results_path/nonlinear_$(i).jld2" O O_I W k time_curr
+    for i in eachindex(testbed)
+        if isfile("$results_path/nonlinear_$(i).jld2")
+            @load "$results_path/nonlinear_$(i).jld2" O O_I W k time_curr
+        else
+            continue
+        end
         push!(iterations,k)
         push!(o_len,length(O))        
         push!(o_i_len,length(O_I))
@@ -62,7 +65,6 @@ function compute_lower_bound(results_path::String, O, W, i, lb_paper)
         # Change order: The leader variable x is the parameter
         Fhandle = (y, x) -> F_fun(x, y)   # (y,x) → (x,y)
         Ghandle = (y, x) -> G_fun(x, y)   # (y,x) → (x,y)
-        num_boxes = length(O)+length(W)
         l = 0
         lb = Inf
         for j in eachindex(O)
@@ -107,7 +109,6 @@ function enclose_w_boxes(W)
         for j in eachindex(W)
             t_box = W[j].tbox
             if j==1
-                enter = true
                 lower_vec = ones(length(t_box))*Inf
                 upper_vec = -ones(length(t_box))*Inf
             end
@@ -124,4 +125,4 @@ function enclose_w_boxes(W)
         return max_width
 end
 
-main("data/results_0807")
+main("data/results_0831")
