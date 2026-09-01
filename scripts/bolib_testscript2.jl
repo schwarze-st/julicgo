@@ -24,7 +24,7 @@ function main(result_folder::String)
     if !isdir(result_folder)
         mkdir(result_folder)
     end
-    epsilon=0.1; delta=0.1; maxiter=Inf; time_limit=10; min_width=0; default_bound=0.5
+    epsilon=0.1; delta=0.1; maxiter=Inf; time_limit=5400; min_width=0; default_bound=0.5
     df_pars = DataFrame(Epsilon=epsilon, Delta=delta, Time_limit=time_limit, Default_bound=default_bound, Max_iter=maxiter, Min_width=min_width)
     CSV.write("$result_folder/parameters.csv", df_pars)
     println("We consider all four-dimensional instances: ")
